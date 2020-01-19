@@ -200,7 +200,7 @@ class User extends BaseObject
     }
 
     /**
-     * @return Domain[]
+     * @return Database[]
      */
     public function getDatabases()
     {
