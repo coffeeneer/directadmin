@@ -159,6 +159,67 @@ class User extends BaseObject
     }
 
     /**
+     * Returns the forwarder quota of the user.
+     *
+     * @return float|null Limit, or null for unlimited
+     */
+    public function getForwarderLimit()
+    {
+        return intval($this->getConfig('nemailf')) ?: null;
+    }
+
+    /**
+     * Returns the current number of forwarders in use.
+     *
+     * @return float
+     */
+    public function getForwarderUsage()
+    {
+        return intval($this->getUsage('nemailf'));
+    }
+
+    /**
+     * Returns the mailbox quota of the user.
+     *
+     * @return float|null Limit, or null for unlimited
+     */
+    public function getMailboxLimit()
+    {
+        return intval($this->getConfig('nemails')) ?: null;
+    }
+
+    /**
+     * Returns the current number of mailboxes in use.
+     *
+     * @return float
+     */
+    public function getMailboxUsage()
+    {
+        return intval($this->getUsage('nemails'));
+    }
+
+    /**
+     * Returns the subdomain quota of the user.
+     *
+     * @return float|null Limit, or null for unlimited
+     */
+    public function getSubdomainLimit()
+    {
+        return intval($this->getConfig('nsubdomains')) ?: null;
+    }
+
+    /**
+     * Returns the current number of subdomains in use.
+     *
+     * @return float
+     */
+    public function getSubdomainUsage()
+    {
+        return intval($this->getUsage('nsubdomains'));
+    }
+
+
+    /**
      * @return Domain|null The default domain for the user, if any
      */
     public function getDefaultDomain()
