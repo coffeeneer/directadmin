@@ -14,9 +14,9 @@ use Omines\DirectAdmin\Context\ResellerContext;
 use Omines\DirectAdmin\Context\UserContext;
 use Omines\DirectAdmin\DirectAdmin;
 use Omines\DirectAdmin\DirectAdminException;
+use Omines\DirectAdmin\Objects\BaseObject;
 use Omines\DirectAdmin\Objects\Database;
 use Omines\DirectAdmin\Objects\Domain;
-use Omines\DirectAdmin\Objects\BaseObject;
 use Omines\DirectAdmin\Utility\Conversion;
 
 /**
@@ -69,6 +69,7 @@ class User extends BaseObject
     {
         $db = Database::create($this->getSelfManagedUser(), $name, $username, $password);
         $this->clearCache();
+
         return $db;
     }
 
@@ -87,6 +88,7 @@ class User extends BaseObject
     {
         $domain = Domain::create($this->getSelfManagedUser(), $domainName, $bandwidthLimit, $diskLimit, $ssl, $php, $cgi);
         $this->clearCache();
+
         return $domain;
     }
 
@@ -218,7 +220,6 @@ class User extends BaseObject
         return intval($this->getUsage('nsubdomains'));
     }
 
-
     /**
      * @return Domain|null The default domain for the user, if any
      */
@@ -227,6 +228,7 @@ class User extends BaseObject
         if (empty($name = $this->getConfig('domain'))) {
             return null;
         }
+
         return $this->getDomain($name);
     }
 
@@ -274,19 +276,21 @@ class User extends BaseObject
                 }
                 $databases[$db] = new Database($db, $this, $this->getSelfManagedContext());
             }
+
             return $databases;
         });
     }
 
     /**
      * @param string $domainName
-     * @return null|Domain
+     * @return Domain|null
      */
     public function getDomain($domainName)
     {
         if (!isset($this->domains)) {
             $this->getDomains();
         }
+
         return isset($this->domains[$domainName]) ? $this->domains[$domainName] : null;
     }
 
@@ -302,6 +306,7 @@ class User extends BaseObject
                 $this->domains = BaseObject::toRichObjectArray($this->getContext()->invokeApiGet('ADDITIONAL_DOMAINS'), Domain::class, $this->getContext());
             }
         }
+
         return $this->domains;
     }
 
@@ -338,6 +343,14 @@ class User extends BaseObject
     }
 
     /**
+     * @return bool Whether the user can use Login Keys
+     */
+    public function hasLoginKeys()
+    {
+        return Conversion::toBool($this->getConfig('login_keys'));
+    }
+
+    /**
      * @return UserContext
      */
     public function impersonate()
@@ -346,6 +359,7 @@ class User extends BaseObject
         if (!($context = $this->getContext()) instanceof ResellerContext) {
             throw new DirectAdminException('You need to be at least a reseller to impersonate');
         }
+
         return $context->impersonateUser($this->getUsername());
     }
 
@@ -359,11 +373,19 @@ class User extends BaseObject
     public function modifyConfig(array $newConfig)
     {
         $this->getContext()->invokeApiPost('MODIFY_USER', array_merge(
-                $this->loadConfig(),
-                Conversion::processUnlimitedOptions($newConfig),
-                ['action' => 'customize', 'user' => $this->getUsername()]
+            $this->loadConfig(),
+            Conversion::processUnlimitedOptions($newConfig),
+            ['action' => 'customize', 'user' => $this->getUsername()]
         ));
         $this->clearCache();
+    }
+
+    /**
+     * @param bool $newValue Whether login keys is enabled for this user
+     */
+    public function setLoginKeys($newValue)
+    {
+        $this->modifyConfig(['login_keys' => Conversion::onOff($newValue)]);
     }
 
     /**
