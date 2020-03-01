@@ -68,6 +68,7 @@ class UserContext extends BaseContext
         if (!isset($this->user)) {
             $this->user = User::fromConfig($this->invokeApiGet('SHOW_USER_CONFIG'), $this);
         }
+
         return $this->user;
     }
 
@@ -75,7 +76,7 @@ class UserContext extends BaseContext
      * Returns a domain managed by the current user.
      *
      * @param string $domainName The requested domain name
-     * @return null|Domain The domain if found, or NULL if it does not exist
+     * @return Domain|null The domain if found, or NULL if it does not exist
      */
     public function getDomain($domainName)
     {
@@ -100,5 +101,19 @@ class UserContext extends BaseContext
     public function getUsername()
     {
         return $this->getConnection()->getUsername();
+    }
+
+    /**
+     * Creates a login key for the connected user.
+     *
+     * @param string $name The key name
+     * @param string $key The key value
+     * @param int $expiresAt Expiry timestamp (utc)
+     *
+     * @return void
+     */
+    public function createLoginKey($name, $key, $expiresAt)
+    {
+        $this->getConnection()->createLoginKey($name, $key, $expiresAt);
     }
 }

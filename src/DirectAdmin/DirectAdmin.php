@@ -130,6 +130,7 @@ class DirectAdmin
         if (!empty($result['error'])) {
             throw new DirectAdminException("$method to $command failed: $result[details] ($result[text])");
         }
+
         return Conversion::sanitizeArray($result);
     }
 
@@ -146,6 +147,36 @@ class DirectAdmin
     }
 
     /**
+     * Creates a login key for the connected user.
+     *
+     * @param string $name The key name
+     * @param string $key The key value
+     * @param int $expiresAt Expiry timestamp (utc)
+     *
+     * @return void
+     */
+    public function createLoginKey($name, $key, $expiresAt)
+    {
+        $this->invokeApi('POST', 'LOGIN_KEYS', [
+            'form_params' => [
+                    'action' => 'create',
+                    'keyname' => $name,
+                    'key' => $key,
+                    'key2' => $key,
+                    'expiry_timestamp' => $expiresAt,
+                    'never_expires' => 'no',
+                    'clear_key' => 'yes',
+                    'max_uses' => 0,
+                    'allow_htm' => 'yes',
+                    'passwd' => $this->password,
+                    'select_deny0' => 'CMD_LOGIN_KEYS',
+                    'select_deny1' => 'CMD_API_LOGIN_KEYS',
+                    'ips' => '',
+                ],
+        ]);
+    }
+
+    /**
      * Sends a raw request to DirectAdmin.
      *
      * @param string $method
@@ -157,10 +188,11 @@ class DirectAdmin
     {
         try {
             $response = $this->connection->request($method, $uri, $options);
-            if ($response->getHeader('Content-Type')[0] == 'text/html') {
+            if ('text/html' == $response->getHeader('Content-Type')[0]) {
                 throw new DirectAdminException(sprintf('DirectAdmin API returned text/html to %s %s containing "%s"', $method, $uri, strip_tags($response->getBody()->getContents())));
             }
             $body = $response->getBody()->getContents();
+
             return Conversion::responseToArray($body);
         } catch (TransferException $exception) {
             // Rethrow anything that causes a network issue
