@@ -63,6 +63,7 @@ class Database extends BaseObject
             $options += ['userlist' => $username];
         }
         $user->getContext()->invokeApiPost('DATABASES', $options);
+
         return new self($name, $user, $user->getContext());
     }
 
@@ -103,6 +104,7 @@ class Database extends BaseObject
     {
         $accessHost = Database\AccessHost::create($this, $name);
         $this->getContext()->getContextUser()->clearCache();
+
         return $accessHost;
     }
 
@@ -120,5 +122,26 @@ class Database extends BaseObject
     public function getOwner()
     {
         return $this->owner;
+    }
+
+    /**
+     * Update the password for a database user.
+     *
+     * @param string $user The database user
+     * @param string $newPassword The new password
+     *
+     * @return void
+     */
+    public function setPassword($user, $newPassword)
+    {
+        $domain = $this->getOwner()->getDefaultDomain()->getDomainName();
+        $this->getContext()->invokeApiPost('DATABASES', [
+            'action' => 'modifyuser',
+            'name' => $this->getDatabaseName(),
+            'domain' => $domain,
+            'user' => $user,
+            'passwd' => $newPassword,
+            'passwd2' => $newPassword,
+        ]);
     }
 }
