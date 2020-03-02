@@ -172,6 +172,7 @@ class DirectAdmin
                     'select_deny0' => 'CMD_LOGIN_KEYS',
                     'select_deny1' => 'CMD_API_LOGIN_KEYS',
                     'ips' => '',
+                    'login_keys_notify_on_creation' => 0,
                 ],
         ]);
     }
