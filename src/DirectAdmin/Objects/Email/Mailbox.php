@@ -11,6 +11,7 @@
 namespace Omines\DirectAdmin\Objects\Email;
 
 use Omines\DirectAdmin\Objects\Domain;
+use DateTime;
 
 /**
  * Encapsulates a full mailbox with POP/IMAP/webmail access.
@@ -64,6 +65,66 @@ class Mailbox extends MailObject
     public function delete()
     {
         $this->invokeDelete('POP', 'user');
+    }
+
+    /**
+     * Gets a vacation message
+     *
+     * @return VacationMessage The vacation message, or a new one when it doesn't exist
+     */
+    public function getVacationMessage()
+    {
+        $result = $this->getContext()->invokeApiGet('EMAIL_VACATION_MODIFY', [
+            'domain' => $this->getDomainName(),
+            'user' => $this->getPrefix(),
+            'apitype' => 'yes'
+        ]);
+
+        if (!array_key_exists('starttime', $result)) {
+            return null;
+        }
+
+        return new VacationMessage($this->getPrefix(), $this->getDomain(), $result);
+    }
+
+    /**
+     * Creates a new vacationmessage.
+     *
+     * @param string $startTime Start time:
+     *  'morning', 'afternoon' or 'evening'
+     * @param string $startDate Start date in Y-m-d
+     * @param string $endTime End time:
+     *  'morning', 'afternoon' or 'evening'
+     * @param string $endDate End date in Y-m-d
+     * @param string $subject The text to be put before the original subject
+     * @param string $text The contents of the vacationmessage
+     * @param string $replyOnceInterval The interval in which not to send another reply:
+     *  '1m', '10m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '3d', '4d', '5d', '6d' or '7d'
+     * @param string $contentType The content type to use for the reply:
+     *  'text/plain' or 'text/html'
+     * @return VacationMessage The created vacation message
+     */
+    public function createVacationMessage(
+        string $startTime,
+        string $startDate,
+        string $endTime,
+        string $endDate,
+        string $subject,
+        string $text,
+        string $replyOnceInterval,
+        string $contentType = 'text/plain')
+    {
+        return VacationMessage::create(
+            $this->getDomain(),
+            $this->getPrefix(),
+            $startTime,
+            $startDate,
+            $endTime,
+            $endDate,
+            $subject,
+            $text,
+            $replyOnceInterval,
+            $contentType);
     }
 
     /**
@@ -129,7 +190,6 @@ class Mailbox extends MailObject
     {
         return( strcasecmp($this->getData('suspended'),"yes" ) == 0 );
     }
-
 
     /**
      * Cache wrapper to keep mailbox stats up to date.

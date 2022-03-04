@@ -28,6 +28,7 @@ class Domain extends BaseObject
     const CACHE_FORWARDERS = 'forwarders';
     const CACHE_MAILBOXES = 'mailboxes';
     const CACHE_SUBDOMAINS = 'subdomains';
+    const CACHE_VACATION_MESSAGES = 'vacationmessages';
 
     const CATCHALL_BLACKHOLE = ':blackhole:';
     const CATCHALL_FAIL = ':fail:';
