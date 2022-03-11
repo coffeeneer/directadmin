@@ -151,8 +151,7 @@ class Mailbox extends MailObject
      *
      * @param string $subject The text to be put before the original subject
      * @param string $text The message
-     * @param bool $cc Whether to send cc
-     * @param string $ccEmail The email address to use for the cc
+     * @param string|null $ccEmail The email address to use for the cc
      * @param string $replyOnceInterval The interval in which not to send another reply:
      *  '1m', '10m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '3d', '4d', '5d', '6d' or '7d'
      * @param string $contentType The content type to use for the reply:
@@ -162,17 +161,15 @@ class Mailbox extends MailObject
     public function createAutoresponder(
         string $subject,
         string $text,
-        bool $cc,
-        string $ccEmail,
+        string|null $ccEmail,
         string $replyOnceInterval,
-        string $contentType)
+        string $contentType = 'text/plain')
     {
         return Autoresponder::create(
             $this->getDomain(),
             $this->getPrefix(),
             $subject,
             $text,
-            $cc,
             $ccEmail,
             $replyOnceInterval,
             $contentType);

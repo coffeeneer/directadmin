@@ -45,7 +45,7 @@ class Autoresponder extends MailObject
      * @param string $subject The text to be put before the original subject
      * @param string $text The message
      * @param bool $cc Whether to send cc
-     * @param string $ccEmail The email address to use for the cc
+     * @param string|null $ccEmail The email address to use for the cc
      * @param string $replyOnceInterval The interval in which not to send another reply:
      *  '1m', '10m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '3d', '4d', '5d', '6d' or '7d'
      * @param string $contentType The content type to use for the reply:
@@ -57,8 +57,7 @@ class Autoresponder extends MailObject
         string $prefix,
         string $subject,
         string $text,
-        bool $cc,
-        string $ccEmail,
+        string|null $ccEmail,
         string $replyOnceInterval,
         string $contentType)
     {
@@ -66,8 +65,8 @@ class Autoresponder extends MailObject
             'user' => $prefix,
             'reply_subject' => $subject,
             'text' => $text,
-            'cc' => Conversion::onOff($cc),
-            'email' => $cc ? $ccEmail : null,
+            'cc' => Conversion::onOff(!!$ccEmail),
+            'email' => $ccEmail,
             'reply_once_time' => $replyOnceInterval,
             'reply_content_type' => $contentType,
             'reply_encoding' => 'UTF-8',
@@ -83,7 +82,7 @@ class Autoresponder extends MailObject
      * @param string $subject The text to be put before the original subject
      * @param string $text The message
      * @param bool $cc Whether to send cc
-     * @param string $ccEmail The email address to use for the cc
+     * @param string|null $ccEmail The email address to use for the cc
      * @param string $replyOnceInterval The interval in which not to send another reply:
      *  '1m', '10m', '30m', '1h', '2h', '6h', '12h', '1d', '2d', '3d', '4d', '5d', '6d' or '7d'
      * @param string $contentType The content type to use for the reply:
@@ -93,8 +92,7 @@ class Autoresponder extends MailObject
     public function modify(
         string $subject,
         string $text,
-        bool $cc,
-        string $ccEmail,
+        string|null $ccEmail,
         string $replyOnceInterval,
         string $contentType)
     {
@@ -102,8 +100,8 @@ class Autoresponder extends MailObject
             'user' => $this->getPrefix(),
             'reply_subject' => $subject,
             'text' => $text,
-            'cc' => Conversion::onOff($cc),
-            'email' => $cc ? $ccEmail : null,
+            'cc' => Conversion::onOff(!!$ccEmail),
+            'email' => $ccEmail,
             'reply_once_time' => $replyOnceInterval,
             'reply_content_type' => $contentType,
             'reply_encoding' => 'UTF-8',
@@ -136,16 +134,6 @@ class Autoresponder extends MailObject
     public function getText()
     {
         return $this->getData('text');
-    }
-
-    /**
-     * Returns the content
-     *
-     * @return bool Whether a CC should be sent
-     */
-    public function getCc()
-    {
-        return Conversion::toBool($this->getData('cc'));
     }
 
     /**
