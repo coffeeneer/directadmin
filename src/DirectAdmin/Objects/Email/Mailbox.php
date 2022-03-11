@@ -11,7 +11,6 @@
 namespace Omines\DirectAdmin\Objects\Email;
 
 use Omines\DirectAdmin\Objects\Domain;
-use DateTime;
 
 /**
  * Encapsulates a full mailbox with POP/IMAP/webmail access.
@@ -70,7 +69,7 @@ class Mailbox extends MailObject
     /**
      * Gets a vacation message
      *
-     * @return VacationMessage The vacation message, or a new one when it doesn't exist
+     * @return VacationMessage|null The vacation message, or null if not found
      */
     public function getVacationMessage()
     {
@@ -85,6 +84,26 @@ class Mailbox extends MailObject
         }
 
         return new VacationMessage($this->getPrefix(), $this->getDomain(), $result);
+    }
+
+    /**
+     * Gets an autoresponder
+     *
+     * @return Autoresponder|null The autoresponder, or null if not found
+     */
+    public function getAutoresponder()
+    {
+        $result = $this->getContext()->invokeApiGet('EMAIL_AUTORESPONDER_MODIFY', [
+            'domain' => $this->getDomainName(),
+            'user' => $this->getPrefix(),
+            'apitype' => 'yes'
+        ]);
+
+        if (!array_key_exists('text', $result)) {
+            return null;
+        }
+
+        return new Autoresponder($this->getPrefix(), $this->getDomain(), $result);
     }
 
     /**
