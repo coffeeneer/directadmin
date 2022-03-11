@@ -45,7 +45,7 @@ class AutoResponder extends MailObject
      * @param bool $cc Whether to send cc
      * @param string $ccEmail The email address to use for the cc
      * @param string $text The message
-     * @return Autoresponder The created vacation message
+     * @return Autoresponder The created autoresponder
      */
     public static function create(
         Domain $domain,
@@ -68,15 +68,14 @@ class AutoResponder extends MailObject
     /**
      * Modifies an existing autoresponder.
      *
-     * @param string $prefix Prefix for the account
      * @param bool $cc Whether to send cc
      * @param string $ccEmail The email address to use for the cc
      * @param string $text The message
      */
-    public function modify(string $prefix, bool $cc, string $ccEmail, string $text)
+    public function modify(bool $cc, string $ccEmail, string $text)
     {
         $this->getDomain()->invokePost('EMAIL_AUTORESPONDER', 'modify', [
-            'user' => $prefix,
+            'user' => $this->getPrefix(),
             'text' => $text,
             'cc' => Conversion::onOff($cc),
             'email' => $cc ? $ccEmail : null,

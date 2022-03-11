@@ -147,6 +147,22 @@ class Mailbox extends MailObject
     }
 
     /**
+     * Creates a new autoresponder.
+     *
+     * @param bool $cc Whether to send cc
+     * @param string $ccEmail The email address to use for the cc
+     * @param string $text The message
+     * @return Autoresponder The created autoresponder
+     */
+    public function createAutoresponder(
+        bool $cc,
+        string $ccEmail,
+        string $text)
+    {
+        return Autoresponder::create($this->getDomain(), $this->getPrefix(), $cc, $ccEmail, $text);
+    }
+
+    /**
      * Reset the password for this mailbox.
      *
      * @param string $newPassword
