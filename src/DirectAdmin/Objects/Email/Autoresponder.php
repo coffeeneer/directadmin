@@ -63,7 +63,7 @@ class Autoresponder extends MailObject
     {
         $domain->invokePost('EMAIL_AUTORESPONDER', 'create', [
             'user' => $prefix,
-            'reply_subject' => $subject,
+            'subject' => $subject,
             'text' => $text,
             'cc' => Conversion::onOff(!!$ccEmail),
             'email' => $ccEmail,
@@ -98,7 +98,7 @@ class Autoresponder extends MailObject
     {
         $this->getDomain()->invokePost('EMAIL_AUTORESPONDER', 'modify', [
             'user' => $this->getPrefix(),
-            'reply_subject' => $subject,
+            'subject' => $subject,
             'text' => $text,
             'cc' => Conversion::onOff(!!$ccEmail),
             'email' => $ccEmail,
