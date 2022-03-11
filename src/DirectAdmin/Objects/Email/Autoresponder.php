@@ -18,7 +18,7 @@ use Omines\DirectAdmin\Utility\Conversion;
  *
  * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
-class AutoResponder extends MailObject
+class Autoresponder extends MailObject
 {
     const CACHE_DATA = 'autoresponder';
 
