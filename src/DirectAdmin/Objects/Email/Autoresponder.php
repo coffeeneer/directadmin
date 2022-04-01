@@ -15,8 +15,6 @@ use Omines\DirectAdmin\Utility\Conversion;
 
 /**
  * Encapsulates an autoresponder.
- *
- * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
 class Autoresponder extends MailObject
 {

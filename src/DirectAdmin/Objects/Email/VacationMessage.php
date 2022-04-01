@@ -15,8 +15,6 @@ use DateTime;
 
 /**
  * Encapsulates a full mailbox with POP/IMAP/webmail access.
- *
- * @author Niels Keurentjes <niels.keurentjes@omines.com>
  */
 class VacationMessage extends MailObject
 {
@@ -40,8 +38,8 @@ class VacationMessage extends MailObject
     /**
      * Creates a new vacationmessage.
      *
-     * @param Domain $domain Domain to add the account to
-     * @param string $prefix Prefix for the account
+     * @param Domain $domain Domain of the mailbox
+     * @param string $prefix Prefix of the mailbox
      * @param string $startTime Start time:
      *  'morning', 'afternoon' or 'evening'
      * @param string $startDate Start date in Y-m-d

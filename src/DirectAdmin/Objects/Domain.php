@@ -28,7 +28,7 @@ class Domain extends BaseObject
     const CACHE_FORWARDERS = 'forwarders';
     const CACHE_MAILBOXES = 'mailboxes';
     const CACHE_SUBDOMAINS = 'subdomains';
-    const CACHE_VACATION_MESSAGES = 'vacationmessages';
+    const CACHE_BACKUPS = 'backups';
 
     const CATCHALL_BLACKHOLE = ':blackhole:';
     const CATCHALL_FAIL = ':fail:';
@@ -157,6 +157,17 @@ class Domain extends BaseObject
     }
 
     /**
+     * Creates a new backup.
+     *
+     * @param array $contents Which contents to include in the backup
+     * @return void
+     */
+    public function createBackup(array $contents)
+    {
+        return Backup::create($this, $contents);
+    }
+
+    /**
      * Deletes this domain from the user.
      */
     public function delete()
@@ -256,6 +267,19 @@ class Domain extends BaseObject
                 'action' => 'full_list',
             ]);
             return DomainObject::toDomainObjectArray($boxes, Mailbox::class, $this);
+        });
+    }
+
+    /**
+     * @return Backup[] Associative array of backups
+     */
+    public function getBackups() {
+        return $this->getCache(self::CACHE_BACKUPS, function () {
+            $fileNames = $this->getContext()->invokeApiGet('SITE_BACKUP', [
+                'domain' => $this->getDomainName(),
+            ]);
+
+            return DomainObject::toDomainObjectArray(array_fill_keys($fileNames, null), Backup::class, $this);
         });
     }
 
