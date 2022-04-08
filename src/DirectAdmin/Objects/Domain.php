@@ -29,6 +29,7 @@ class Domain extends BaseObject
     const CACHE_MAILBOXES = 'mailboxes';
     const CACHE_SUBDOMAINS = 'subdomains';
     const CACHE_BACKUPS = 'backups';
+    const CACHE_REDIRECTS = 'redirects';
 
     const CATCHALL_BLACKHOLE = ':blackhole:';
     const CATCHALL_FAIL = ':fail:';
@@ -168,6 +169,20 @@ class Domain extends BaseObject
     }
 
     /**
+     * Creates a new redirect.
+     *
+     * @param string $from The path to forward.
+     * @param string $to The url to forward to.
+     * @param string $type The type of forwarder:
+     *  '301', '302', '303'
+     * @return Redirect The newly created redirect
+     */
+    public function createRedirect(string $from, string $to, string $type)
+    {
+        return Redirect::create($this, $from, $to, $type);
+    }
+
+    /**
      * Deletes this domain from the user.
      */
     public function delete()
@@ -280,6 +295,20 @@ class Domain extends BaseObject
             ]);
 
             return DomainObject::toDomainObjectArray(array_fill_keys($fileNames, null), Backup::class, $this);
+        });
+    }
+
+    /**
+     * @return Redirect[] Associative array of forwarders
+     */
+    public function getRedirects() {
+        return $this->getCache(self::CACHE_REDIRECTS, function () {
+            $redirects = $this->getContext()->invokeApiGet('REDIRECT', [
+                'domain' => $this->getDomainName(),
+                'apitype' => 'yes'
+            ]);
+
+            return DomainObject::toDomainObjectArray($redirects, Redirect::class, $this);
         });
     }
 
