@@ -53,6 +53,19 @@ class Forwarder extends MailObject
     }
 
     /**
+     * Modifies an existing forwarder.
+     *
+     * @param string|string[] $recipients
+     */
+    public function modify($recipients)
+    {
+        $this->invokePost('EMAIL_FORWARDERS', 'modify', [
+            'user' => $this->getPrefix(),
+            'email' => is_array($recipients) ? implode(',', $recipients) : $recipients,
+        ]);
+    }
+
+    /**
      * Deletes the forwarder.
      */
     public function delete()
