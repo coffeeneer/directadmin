@@ -30,6 +30,7 @@ class Domain extends BaseObject
     const CACHE_SUBDOMAINS = 'subdomains';
     const CACHE_BACKUPS = 'backups';
     const CACHE_REDIRECTS = 'redirects';
+    const CACHE_FTP = 'ftp';
 
     const CATCHALL_BLACKHOLE = ':blackhole:';
     const CATCHALL_FAIL = ':fail:';
@@ -309,6 +310,20 @@ class Domain extends BaseObject
             ]);
 
             return DomainObject::toDomainObjectArray($redirects, Redirect::class, $this);
+        });
+    }
+
+    /**
+     * @return FtpAccount[] Associative array of forwarders
+     */
+    public function getFtpAccounts() {
+        return $this->getCache(self::CACHE_FTP, function () {
+            $ftpAccounts = $this->getContext()->invokeApiGet('FTP', [
+                'domain' => $this->getDomainName(),
+                'extended' => 'yes'
+            ]);
+
+            return DomainObject::toDomainObjectArray($ftpAccounts, FtpAccount::class, $this);
         });
     }
 
