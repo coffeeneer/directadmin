@@ -28,37 +28,67 @@ class FtpAccount extends DomainObject
     }
 
     /**
-     * Creates a new redirect.
+     * Creates a new FTP account.
      *
-     * @param string $type The type of forwarder:
-     *  '301', '302', '303'
-     * @param string $to The url to forward to.
-     * @param string $from The path to forward.
-     * @return Redirect The newly created redirect
+     * @param string $user The username (without domain).
+     * @param string $type The type of account:
+     *  'user', 'domain', 'ftp', 'custom'
+     * @param string $password The password to use.
+     * @param string $customPath A custom path, to be used with 'custom' type
+     * @return FtpAccount The newly created account
      */
-    public static function create(Domain $domain, string $from, string $to, string $type) {
+    public static function create(Domain $domain, string $user, string $type, string $password, string $customPath = null) {
         $config = [
-            'from' => $from,
-            'to' => $to,
+            'user' => $user,
             'type' => $type,
+            'passwd' => $password,
+            'passwd2' => $password,
         ];
-        $domain->invokePost('REDIRECT', 'add', $config);
 
-        return new self($from, $domain, $config);
+        if($type === 'custom') {
+            $config['custom_val'] = $customPath;
+        }
+
+        $domain->invokePost('FTP', 'create', $config);
+
+        return new self($user . '@' . $domain->getDomainName(), $domain);
     }
 
     /**
-     * Deletes the forwarder.
+     * Modifies an FTP account.
+     *
+     * @param string $type The type of account:
+     *  'user', 'domain', 'ftp', 'custom'
+     * @param string $password The password to use.
+     * @param string $customPath A custom path, to be used with 'custom' type
+     */
+    public function modify(string $type, string $password, string $customPath = null) {
+        $config = [
+            'user' => $this->getUserWithoutDomain(),
+            'type' => $type,
+            'passwd' => $password,
+            'passwd2' => $password,
+        ];
+
+        if($customPath) {
+            $config['custom_val'] = $customPath;
+        }
+
+        $this->invokePost('FTP', 'modify', $config);
+    }
+
+    /**
+     * Deletes the account.
      */
     public function delete()
     {
-        $this->invokePost('REDIRECT', 'delete', [
-            'select0' => $this->getUser()
+        $this->invokePost('FTP', 'delete', [
+            'select0' => $this->getUserWithoutDomain()
         ]);
     }
 
     /**
-     * Returns the path where to redirect from.
+     * Returns the full user name.
      *
      * @return string
      */
@@ -67,27 +97,45 @@ class FtpAccount extends DomainObject
     }
 
     /**
-     * Returns the url where to redirect to.
+     * Returns user without the domain part.
+     *
+     * @return string
+     */
+    public function getUserWithoutDomain() {
+        return strtok($this->getName(), '@');
+    }
+
+    /**
+     * Returns wether the account is a system user.
+     *
+     * @return bool
+     */
+    public function isSystemUser() {
+        return $this->getUser() === $this->getUserWithoutDomain();
+    }
+
+    /**
+     * Returns the account path.
      *
      * @return string
      */
     public function getPath()
     {
-        return $this->getData('account.path');
+        return $this->getData('path');
     }
 
     /**
-     * Returns the redirect type.
+     * Returns the account type.
      *
      * @return string
      */
     public function getType()
     {
-        return $this->getData('type');
+        return $this->getDetailedData('type');
     }
 
     /**
-     * Cache wrapper to keep mailbox stats up to date.
+     * Cache wrapper to keep account stats up to date.
      *
      * @param string $key
      * @return mixed
@@ -97,13 +145,13 @@ class FtpAccount extends DomainObject
         return $this->getCacheItem(self::CACHE_DETAILED_DATA, $key, function () {
             return $this->getContext()->invokeApiGet('FTP_SHOW', [
                 'domain' => $this->getDomainName(),
-                'user' => $this->getUser(),
+                'user' => $this->getUserWithoutDomain(),
             ]);
         });
     }
 
     /**
-     * Cache wrapper to keep mailbox stats up to date.
+     * Cache wrapper to keep account stats up to date.
      *
      * @param string $key
      * @return mixed
@@ -116,7 +164,7 @@ class FtpAccount extends DomainObject
                 'extended' => 'yes'
             ]);
 
-            return \GuzzleHttp\Psr7\Query::parse($result[$this->getUser()]);
+            return \GuzzleHttp\Psr7\Query::parse($result[$this->getUser()]['account']);
         });
     }
 }

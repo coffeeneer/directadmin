@@ -184,6 +184,20 @@ class Domain extends BaseObject
     }
 
     /**
+     * Creates a new FTP account.
+     *
+     * @param string $user The username (without domain).
+     * @param string $type The type of account:
+     *  'user', 'domain', 'ftp', 'custom'
+     * @param string $password The password to use.
+     * @param string $customPath A custom path, to be used with 'custom' type
+     * @return FtpAccount The newly created account
+     */
+    public function createFtpAccount(string $user, string $type, string $password, string $customPath = null) {
+        return FtpAccount::create($this, $user, $type, $password, $customPath);
+    }
+
+    /**
      * Deletes this domain from the user.
      */
     public function delete()
