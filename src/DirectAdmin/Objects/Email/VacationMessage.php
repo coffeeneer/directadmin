@@ -214,7 +214,7 @@ class VacationMessage extends MailObject
     /**
      * Returns the content type
      *
-     * @return string The contehnt
+     * @return string The content
      */
     public function getContentType()
     {
@@ -238,8 +238,17 @@ class VacationMessage extends MailObject
      */
     private static function getValueFromSelectBoxes(string $selectBoxes)
     {
-        preg_match_all('/selected value="(.+?)"/', $selectBoxes, $matches);
-        return $matches[1][0];
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($selectBoxes);
+        $select = $dom->getElementById('reply_content_type');
+        $selectedValue = null;
+        foreach ($select->childNodes as $option) {
+            if ($option instanceof \DOMElement && $option->hasAttribute('selected')) {
+                $selectedValue = $option->getAttribute('value');
+                break;
+            }
+        }
+        return $selectedValue;
     }
 
     /**

@@ -171,8 +171,17 @@ class Autoresponder extends MailObject
      */
     private static function getValueFromSelectBoxes(string $selectBoxes)
     {
-        preg_match_all('/selected value="(.+?)"/', $selectBoxes, $matches);
-        return $matches[1][0];
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($selectBoxes);
+        $select = $dom->getElementById('reply_content_type');
+        $selectedValue = null;
+        foreach ($select->childNodes as $option) {
+            if ($option instanceof \DOMElement && $option->hasAttribute('selected')) {
+                $selectedValue = $option->getAttribute('value');
+                break;
+            }
+        }
+        return $selectedValue;
     }
 
     /**
@@ -184,13 +193,11 @@ class Autoresponder extends MailObject
     protected function getData($key)
     {
         return $this->getCacheItem(self::CACHE_DATA, $key, function () {
-            $result = $this->getContext()->invokeApiGet('EMAIL_AUTORESPONDER_MODIFY', [
+            return $this->getContext()->invokeApiGet('EMAIL_AUTORESPONDER_MODIFY', [
                 'domain' => $this->getDomainName(),
                 'user' => $this->getPrefix(),
                 'apitype' => 'yes'
             ]);
-
-            return $result;
         });
     }
 }
