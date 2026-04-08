@@ -173,7 +173,7 @@ class Autoresponder extends MailObject
     {
         $dom = new \DOMDocument();
         @$dom->loadHTML($selectBoxes);
-        $select = $dom->getElementById('reply_content_type');
+        $select = $dom->getElementsByTagName('select')->item(0);
         $selectedValue = null;
         foreach ($select->childNodes as $option) {
             if ($option instanceof \DOMElement && $option->hasAttribute('selected')) {
