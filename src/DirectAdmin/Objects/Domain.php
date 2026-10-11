@@ -35,6 +35,10 @@ class Domain extends BaseObject
     const CATCHALL_BLACKHOLE = ':blackhole:';
     const CATCHALL_FAIL = ':fail:';
 
+    const ACME_DNS_PROVIDER_INHERIT_GLOBAL = 'inherit-global';
+    const ACME_DNS_PROVIDER_INHERIT_CREATOR = 'inherit-creator';
+    const ACME_DNS_PROVIDER_LOCAL = 'local';
+
     /** @var string */
     private $domainName;
 
@@ -232,6 +236,58 @@ class Domain extends BaseObject
     public function getBandwidthLimit()
     {
         return $this->bandwidthLimit;
+    }
+
+    /**
+     * @return string|null Currently configured ACME DNS provider for the domain, null when none is configured
+     */
+    public function getAcmeDnsProvider()
+    {
+        $providers = $this->getAcmeDnsProviderConfig();
+        $current = isset($providers['dnsprovider']) ? $providers['dnsprovider'] : [];
+
+        return (is_array($current) && !empty($current['dnsprovider'])) ? $current['dnsprovider'] : null;
+    }
+
+    /**
+     * @param string $provider The ACME DNS provider name, or one of the ACME_DNS_PROVIDER_ constants
+     * @return bool Whether the provider can be selected for the domain
+     */
+    public function isAcmeDnsProviderAvailable($provider)
+    {
+        $providers = $this->getAcmeDnsProviderConfig();
+
+        return isset($providers['data']) && is_array($providers['data']) && array_key_exists($provider, $providers['data']);
+    }
+
+    /**
+     * Sets the ACME DNS provider for the domain. Only providers without credentials (ie. inherited
+     * providers) are supported, since no credential fields are sent along.
+     *
+     * @param string $provider The ACME DNS provider name, or one of the ACME_DNS_PROVIDER_ constants
+     */
+    public function setAcmeDnsProvider($provider)
+    {
+        $this->getContext()->invokeJsonApiPost('SSL', [
+            'action' => 'dnsprovider',
+            'type' => 'domain',
+            'domain' => $this->domainName,
+            'dnsprovider' => $provider,
+        ]);
+    }
+
+    /**
+     * @return array The ACME DNS provider configuration for the domain
+     */
+    private function getAcmeDnsProviderConfig()
+    {
+        $response = $this->getContext()->invokeJsonApiGet('SSL', [
+            'action' => 'dnsprovider',
+            'type' => 'domain',
+            'domain' => $this->domainName,
+        ]);
+
+        return isset($response['dnsproviders']) && is_array($response['dnsproviders']) ? $response['dnsproviders'] : [];
     }
 
     /**

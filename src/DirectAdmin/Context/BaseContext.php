@@ -67,6 +67,30 @@ abstract class BaseContext
     }
 
     /**
+     * Invokes a JSON DirectAdmin API via HTTP GET.
+     *
+     * @param string $command DirectAdmin API command to invoke
+     * @param array $query Optional query parameters
+     * @return array The decoded and validated response
+     */
+    public function invokeJsonApiGet($command, $query = [])
+    {
+        return $this->connection->invokeJsonApi('GET', $command, ['query' => $query]);
+    }
+
+    /**
+     * Invokes a JSON DirectAdmin API via HTTP POST.
+     *
+     * @param string $command DirectAdmin API command to invoke
+     * @param array $postParameters Optional form parameters
+     * @return array The decoded and validated response
+     */
+    public function invokeJsonApiPost($command, $postParameters = [])
+    {
+        return $this->connection->invokeJsonApi('POST', $command, ['form_params' => $postParameters]);
+    }
+
+    /**
      * @param $method
      * @param $uri
      * @param $options

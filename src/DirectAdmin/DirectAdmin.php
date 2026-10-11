@@ -135,6 +135,46 @@ class DirectAdmin
     }
 
     /**
+     * Invokes a DirectAdmin API command that responds with JSON.
+     *
+     * Required for endpoints that are only available in JSON format, since the regular invokeApi
+     * parses responses as url-encoded data.
+     *
+     * @param string $method HTTP method to use (ie. GET or POST)
+     * @param string $command DirectAdmin API command to invoke
+     * @param array $options Guzzle options to use for the call
+     * @return array The decoded response
+     * @throws DirectAdminException If anything went wrong on the network level or the API returned an error
+     */
+    public function invokeJsonApi($method, $command, $options = [])
+    {
+        $key = ('GET' === strtoupper($method)) ? 'query' : 'form_params';
+        $options[$key] = array_merge(isset($options[$key]) ? $options[$key] : [], ['json' => 'yes']);
+
+        try {
+            $response = $this->connection->request($method, '/CMD_API_' . $command, $options);
+            $result = json_decode($response->getBody()->getContents(), true);
+        } catch (TransferException $exception) {
+            if ($exception instanceof \GuzzleHttp\Exception\RequestException && $exception->hasResponse()) {
+                $result = json_decode($exception->getResponse()->getBody()->getContents(), true);
+                if (is_array($result) && !empty($result['error'])) {
+                    throw new DirectAdminException(sprintf('%s to %s failed: %s (%s)', $method, $command, $result['error'], isset($result['result']) ? $result['result'] : ''), 0, $exception);
+                }
+            }
+            throw new DirectAdminException(sprintf('%s request to %s failed', $method, $command), 0, $exception);
+        }
+
+        if (!is_array($result)) {
+            throw new DirectAdminException(sprintf('DirectAdmin API returned invalid JSON to %s %s', $method, $command));
+        }
+        if (!empty($result['error'])) {
+            throw new DirectAdminException(sprintf('%s to %s failed: %s (%s)', $method, $command, $result['error'], isset($result['result']) ? $result['result'] : ''));
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns a clone of the connection logged in as a managed user or reseller.
      *
      * @param string $username
