@@ -218,6 +218,97 @@ class DirectAdmin
     }
 
     /**
+     * Invokes the new DirectAdmin REST API (`/api/...`) with a JSON body.
+     *
+     * @param string $method HTTP method to use (ie. GET or POST)
+     * @param string $path Path relative to /api/, ie. `login-keys/keys`
+     * @param array|null $body Request body, sent as JSON
+     * @return array The decoded response, empty for responses without body
+     * @throws DirectAdminException If anything went wrong on the network level or the API returned an error
+     */
+    public function invokeRestApi($method, $path, $body = null)
+    {
+        $options = ['headers' => ['Accept' => 'application/json']];
+        if (null !== $body) {
+            $options['json'] = $body;
+        }
+
+        try {
+            $response = $this->connection->request($method, '/api/' . ltrim($path, '/'), $options);
+        } catch (TransferException $exception) {
+            $details = '';
+            if ($exception instanceof \GuzzleHttp\Exception\RequestException && $exception->hasResponse()) {
+                $details = ': ' . strip_tags((string) $exception->getResponse()->getBody());
+            }
+            throw new DirectAdminException(sprintf('%s request to /api/%s failed%s', $method, $path, $details), 0, $exception);
+        }
+
+        $contents = $response->getBody()->getContents();
+        if ('' === $contents) {
+            return [];
+        }
+
+        $result = json_decode($contents, true);
+        if (!is_array($result)) {
+            throw new DirectAdminException(sprintf('DirectAdmin API returned invalid JSON to %s /api/%s', $method, $path));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Creates a login key for the connected user that is restricted to the given commands.
+     *
+     * @param string $name The key name
+     * @param string $key The key value
+     * @param int $expiresAt Expiry timestamp (utc), the key is removed afterwards
+     * @param string[] $allowCommands Commands the key may execute, ie. `phpmyadmin-sso`
+     * @param bool $allowLogin Whether the key may be used to log in to the DirectAdmin interface
+     *
+     * @return void
+     */
+    public function createRestrictedLoginKey($name, $key, $expiresAt, array $allowCommands, $allowLogin = false)
+    {
+        $allowed = [];
+        foreach (array_values($allowCommands) as $index => $command) {
+            $allowed['select_allow' . $index] = $command;
+        }
+
+        $this->invokeApi('POST', 'LOGIN_KEYS', [
+            'form_params' => array_merge([
+                    'action' => 'create',
+                    'keyname' => $name,
+                    'key' => $key,
+                    'key2' => $key,
+                    'expiry_timestamp' => $expiresAt,
+                    'never_expires' => 'no',
+                    'clear_key' => 'yes',
+                    'max_uses' => 0,
+                    'allow_htm' => $allowLogin ? 'yes' : 'no',
+                    'passwd' => $this->password,
+                    'ips' => '',
+                    'login_keys_notify_on_creation' => 0,
+                ], $allowed),
+        ]);
+    }
+
+    /**
+     * Creates a phpMyAdmin single sign-on URL for the connected user.
+     *
+     * @return string The URL to redirect the browser to
+     * @throws DirectAdminException If no URL was returned
+     */
+    public function createPhpMyAdminSsoUrl()
+    {
+        $result = $this->invokeRestApi('POST', 'phpmyadmin-sso/account-access');
+        if (empty($result['url'])) {
+            throw new DirectAdminException('DirectAdmin did not return a phpMyAdmin SSO url');
+        }
+
+        return $result['url'];
+    }
+
+    /**
      * Sends a raw request to DirectAdmin.
      *
      * @param string $method

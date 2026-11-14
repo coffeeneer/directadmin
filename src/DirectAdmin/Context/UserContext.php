@@ -116,4 +116,30 @@ class UserContext extends BaseContext
     {
         $this->getConnection()->createLoginKey($name, $key, $expiresAt);
     }
+
+    /**
+     * Creates a login key for the connected user that is restricted to the given commands.
+     *
+     * @param string $name The key name
+     * @param string $key The key value
+     * @param int $expiresAt Expiry timestamp (utc), the key is removed afterwards
+     * @param string[] $allowCommands Commands the key may execute, ie. `phpmyadmin-sso`
+     * @param bool $allowLogin Whether the key may be used to log in to the DirectAdmin interface
+     *
+     * @return void
+     */
+    public function createRestrictedLoginKey($name, $key, $expiresAt, array $allowCommands, $allowLogin = false)
+    {
+        $this->getConnection()->createRestrictedLoginKey($name, $key, $expiresAt, $allowCommands, $allowLogin);
+    }
+
+    /**
+     * Creates a phpMyAdmin single sign-on URL for the connected user.
+     *
+     * @return string The URL to redirect the browser to
+     */
+    public function createPhpMyAdminSsoUrl()
+    {
+        return $this->getConnection()->createPhpMyAdminSsoUrl();
+    }
 }
