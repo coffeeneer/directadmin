@@ -13,6 +13,7 @@ namespace Omines\DirectAdmin\Context;
 use Omines\DirectAdmin\DirectAdmin;
 use Omines\DirectAdmin\DirectAdminException;
 use Omines\DirectAdmin\Objects\Domain;
+use Omines\DirectAdmin\Objects\Domains\AcmeConfig;
 use Omines\DirectAdmin\Objects\Users\User;
 
 /**
@@ -141,5 +142,36 @@ class UserContext extends BaseContext
     public function createPhpMyAdminSsoUrl()
     {
         return $this->getConnection()->createPhpMyAdminSsoUrl();
+    }
+
+    /**
+     * Gets the ACME configuration of a domain of the connected user.
+     *
+     * @param string $domainName The domain
+     * @return AcmeConfig
+     */
+    public function getAcmeConfig($domainName)
+    {
+        return new AcmeConfig($this->getConnection()->invokeRestApi('GET', $this->getAcmeConfigPath($domainName)));
+    }
+
+    /**
+     * Saves the ACME configuration of a domain of the connected user.
+     *
+     * @param string $domainName The domain
+     * @param AcmeConfig $config The complete configuration, as retrieved with getAcmeConfig()
+     */
+    public function saveAcmeConfig($domainName, AcmeConfig $config)
+    {
+        $this->getConnection()->invokeRestApi('PUT', $this->getAcmeConfigPath($domainName), $config->toArray());
+    }
+
+    /**
+     * @param string $domainName The domain
+     * @return string Path of the domain's ACME configuration in the REST API
+     */
+    private function getAcmeConfigPath($domainName)
+    {
+        return 'domain-tls/domains/' . rawurlencode($domainName) . '/acme-config';
     }
 }

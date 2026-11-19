@@ -12,6 +12,7 @@ namespace Omines\DirectAdmin\Objects;
 
 use Omines\DirectAdmin\Context\UserContext;
 use Omines\DirectAdmin\DirectAdminException;
+use Omines\DirectAdmin\Objects\Domains\AcmeConfig;
 use Omines\DirectAdmin\Objects\Domains\Subdomain;
 use Omines\DirectAdmin\Objects\Email\Forwarder;
 use Omines\DirectAdmin\Objects\Email\Mailbox;
@@ -38,6 +39,7 @@ class Domain extends BaseObject
     const ACME_DNS_PROVIDER_INHERIT_GLOBAL = 'inherit-global';
     const ACME_DNS_PROVIDER_INHERIT_CREATOR = 'inherit-creator';
     const ACME_DNS_PROVIDER_LOCAL = 'local';
+    const ACME_DNS_PROVIDER_NONE = '';
 
     /** @var string */
     private $domainName;
@@ -288,6 +290,22 @@ class Domain extends BaseObject
         ]);
 
         return isset($response['dnsproviders']) && is_array($response['dnsproviders']) ? $response['dnsproviders'] : [];
+    }
+
+    /**
+     * @return AcmeConfig The ACME configuration of the domain
+     */
+    public function getAcmeConfig()
+    {
+        return $this->getContext()->getAcmeConfig($this->domainName);
+    }
+
+    /**
+     * @param AcmeConfig $config The complete configuration, as retrieved with getAcmeConfig()
+     */
+    public function saveAcmeConfig(AcmeConfig $config)
+    {
+        $this->getContext()->saveAcmeConfig($this->domainName, $config);
     }
 
     /**
